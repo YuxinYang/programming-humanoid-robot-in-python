@@ -14,7 +14,7 @@ from spark_agent import Perception
 class MyAgent(SparkAgent):
     def think(self, perception):
 
-        angle = perception.imu
+        angle = perception.joint['HeadYaw']
         tempeture = perception.joint_temperature['HeadYaw']
         # YOUR CODE HERE
         # set angle and tempeture to current data of joint HeadYaw
