@@ -51,44 +51,35 @@ class AngleInterpolationAgent(PIDAgent):
             joint = names[i]
             if joint in self.joint_names:
                 for j in range(len(times[i]) - 1):
-                    if start_time < times[i][0]:
-                        target_joints[joint] = self.calculate_first_bezier_angle(times, keys, i, joint, start_time)
-                    elif times[i][j] < start_time < times[i][j + 1] and j+1 < len(times[i]):
+                    if (times[i][j] < start_time < times[i][j + 1] and j+1 < len(times[i])) or (j == 0):
                         target_joints[joint] = self.calculate_bezier_angle(times, keys, i, j, joint, start_time)
         
         return target_joints
         
-    def calculate_first_bezier_angle(self, times, keys, j_index, joint, start_time):
+    def calculate_bezier_angle(self, times, keys, i_index, j_index, joint, start_time):
         
-        # Time values
-        t_0 = 0.0
-        t_3 = times[j_index][0]
-        
-        # Angles
-        a_0 = self.perception.joint[joint]
-        a_3 = keys[j_index][0][0]
-        # Control angles
-        a_1 = keys[j_index][0][1][2] + a_0
-        a_2 = keys[j_index][0][2][2] + a_3
-        
-        dt = (start_time) / t_3
-        return self.calculate_bezier_interpolation(a_0, a_1, a_2, a_3, dt)
-        
-    def calculate_bezier_angle(self, times, keys, j_index, t_index, joint, start_time):
-        
-        # Time values
-        t_0 = times[j_index][t_index]
-        t_3 = times[j_index][t_index + 1]
-        # Control times
-        t_1 = keys[j_index][t_index][1][1] + t_0
-        t_2 = keys[j_index][t_index][2][1] + t_3
-        
-        # Angles
-        a_0 = keys[j_index][t_index][0]
-        a_3 = keys[j_index][t_index + 1][0]
-        # Control angles
-        a_1 = keys[j_index][t_index][1][2] + a_0
-        a_2 = keys[j_index][t_index][2][2] + a_3
+        if start_time < times[i_index][0] and j_index == 0:
+            t_0 = 0.0
+            t_3 = times[i_index][0]
+            
+            a_0 = self.perception.joint[joint]
+            a_3 = keys[i_index][0][0]
+            # print a_0
+            # print a_3
+            
+        else:
+            t_0 = times[i_index][j_index]
+            t_3 = times[i_index][j_index + 1]
+
+            #t_1 = keys[i_index][j_index][1][1] + t_0
+            #t_2 = keys[i_index][j_index][2][1] + t_3
+            
+            a_0 = keys[i_index][j_index][0]
+            a_3 = keys[i_index][j_index + 1][0]
+           
+            
+        a_1 = keys[i_index][j_index][1][2] + a_0
+        a_2 = keys[i_index][j_index][2][2] + a_3
 
         dt = (start_time - t_0) / (t_3 - t_0)
         

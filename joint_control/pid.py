@@ -54,9 +54,13 @@ class PIDController(object):
         #print sensor
         #print y
         
-        self.u = self.u + (self.Kp+self.Ki*self.dt+self.Kd/self.dt)*e - (self.Kp+(2*self.Kd)/self.dt)*self.e1 + (self.Kd/self.dt)*self.e2
-        self.e2 = self.e1.copy()
-        self.e1 = e.copy()
+        p = self.Kp * (e - self.e1)
+        i = self.Ki * self.dt * e
+        d = self.Kd / self.dt * (e - 2*self.e1 + self.e2)
+        
+        self.u += p + i + d
+        self.e2 = self.e1
+        self.e1 = e
         #print "error: " + str(e)
         
         speed = ((self.u - sensor) + (y - sensor)) / (2*self.dt)

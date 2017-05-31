@@ -19,16 +19,12 @@ class StandingUpAgent(PostureRecognitionAgent):
 
         if posture == 'Belly':
             self.keyframes = leftBellyToStand()
-        elif posture == 'Left':
+        elif posture == 'Left' or posture == 'Back':
             self.keyframes = leftBackToStand()
-        elif posture == 'Right':
+        elif posture == 'Right' or posture == 'Frog' or posture == 'Sit':
             self.keyframes = rightBackToStand()
-        elif posture == 'Back':
-            self.keyframes = leftBackToStand()
-        elif posture == 'Frog':
-            self.keyframes = rightBackToStand()
-        elif posture == 'Sit':
-            self.keyframes = rightBackToStand()
+        else: 
+            self.keyframes = rightBellyToStand()
 
 class TestStandingUpAgent(StandingUpAgent):
     '''This agent turns off all motor to falls down in fixed cycles'''

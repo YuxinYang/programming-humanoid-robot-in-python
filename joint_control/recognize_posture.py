@@ -34,12 +34,12 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
 
     def think(self, perception):
         self.posture = self.recognize_posture(perception)
-        #print self.posture
+        print self.posture
         return super(PostureRecognitionAgent, self).think(perception)
 
     def recognize_posture(self, perception):
-        posture = 'unknown'
-        # YOUR CODE HERE
+        #posture = 'unknown'
+    
         data = []
         
         for feature in self.features:
