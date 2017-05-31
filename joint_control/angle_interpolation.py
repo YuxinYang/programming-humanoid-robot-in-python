@@ -32,6 +32,7 @@ class AngleInterpolationAgent(PIDAgent):
                  sync_mode=True):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.keyframes = ([], [], [])
+        self.start_time = self.perception.time
 
     def think(self, perception):
         target_joints = self.angle_interpolation(self.keyframes, perception)
@@ -40,9 +41,66 @@ class AngleInterpolationAgent(PIDAgent):
 
     def angle_interpolation(self, keyframes, perception):
         target_joints = {}
-        # YOUR CODE HERE
-
+        start_time = perception.time - self.start_time
+        
+        names = keyframes[0] 
+        times = keyframes[1]
+        keys = keyframes[2]
+        
+        for i in range(len(names)):
+            joint = names[i]
+            if joint in self.joint_names:
+                for j in range(len(times[i]) - 1):
+                    if start_time < times[i][0]:
+                        target_joints[joint] = self.calculate_first_bezier_angle(times, keys, i, joint, start_time)
+                    elif times[i][j] < start_time < times[i][j + 1] and j+1 < len(times[i]):
+                        target_joints[joint] = self.calculate_bezier_angle(times, keys, i, j, joint, start_time)
+        
         return target_joints
+        
+    def calculate_first_bezier_angle(self, times, keys, j_index, joint, start_time):
+        
+        # Time values
+        t_0 = 0.0
+        t_3 = times[j_index][0]
+        
+        # Angles
+        a_0 = self.perception.joint[joint]
+        a_3 = keys[j_index][0][0]
+        # Control angles
+        a_1 = keys[j_index][0][1][2] + a_0
+        a_2 = keys[j_index][0][2][2] + a_3
+        
+        dt = (start_time) / t_3
+        return self.calculate_bezier_interpolation(a_0, a_1, a_2, a_3, dt)
+        
+    def calculate_bezier_angle(self, times, keys, j_index, t_index, joint, start_time):
+        
+        # Time values
+        t_0 = times[j_index][t_index]
+        t_3 = times[j_index][t_index + 1]
+        # Control times
+        t_1 = keys[j_index][t_index][1][1] + t_0
+        t_2 = keys[j_index][t_index][2][1] + t_3
+        
+        # Angles
+        a_0 = keys[j_index][t_index][0]
+        a_3 = keys[j_index][t_index + 1][0]
+        # Control angles
+        a_1 = keys[j_index][t_index][1][2] + a_0
+        a_2 = keys[j_index][t_index][2][2] + a_3
+
+        dt = (start_time - t_0) / (t_3 - t_0)
+        
+        return self.calculate_bezier_interpolation(a_0, a_1, a_2, a_3, dt)
+        
+    @staticmethod
+    def calculate_bezier_interpolation(a_0, a_1, a_2, a_3, dt):
+        c_0 = (1 - dt)**3
+        c_1 = 3 * (1 - dt)**2
+        c_2 = 3 * (1 - dt)
+        return c_0 * a_0 + c_1 * a_1 * dt + c_2 * a_2 * dt**2 + a_3 * dt**3
+        
 
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
